@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script defer src="index.js"></script>
+    <title>Dashboard</title>
+</head>
+<body id="dashboard">
+    
+<nav> 
+    <h2 id="current_user">Hello</h2>
+
+    <div class="main_search_container"><input id="main_search_bar" type="text" placeholder="search for saved passwords"> <button id="search"><i class="fa-solid fa-magnifying-glass"></i></button></div><a href="/create-password.html" id="new_password"><span>New password</span></a>
+    <a href="/login.html" id="logout"><span>Log out</span></a>
+
+</nav>
+    <section class="recent_passwords">
+        <ul>
+            <li class="recent_passwords_card">
+                <h3 class="interactive_copy">Recent Password Title</h3>
+                <div class="displayed">
+                    <input type="password" readonly name="" value="jajadeberia hacerlo" class="password" id="01">
+                    <button class="reveal"><i class="fa-solid fa-eye"></i></button>
+                </div>
+
+            </li>
+            <li class="recent_passwords_card">
+                <h3 class="interactive_copy">Recent Password Title</h3>
+                <div class="displayed">
+                    <input type="password" readonly name="" class="password" id="">
+                    <button class="reveal"><i class="fa-solid fa-eye"></i></button>
+                </div>
+            </li>
+            <li class="recent_passwords_card">
+                <h3 class="interactive_copy">Recent Password Title</h3>
+                <div class="displayed">
+                    <input type="password" readonly name="" class="password" id="">
+                    <button class="reveal"><i class="fa-solid fa-eye"></i></button>
+                </div>
+            </li>
+            <li class="recent_passwords_card">
+                <h3 class="interactive_copy">Recent Password Title</h3>
+                <div class="displayed">
+                    <input type="password" readonly name="" class="password" id="">
+                    <button class="reveal"><i class="fa-solid fa-eye"></i></button>
+                </div>
+            </li>
+        </ul>
+    </section>
+    <section class="consulted_passwords">
+        <ul id="result">
+            
+        </ul>
+    </section>
+</body>
+</html>

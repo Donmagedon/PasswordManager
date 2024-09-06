@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script defer src="index.js"></script>
+    <title>Trinity Passwords</title>
+</head>
+<body id="session_saved">
+    <nav>
+        <h2 id="current_user">Hello</h2>
+        <a href="/login.html" id="logout">Log out</a>
+    </nav>
+    <main>
+        <div class="validation_msg hidden">Please review the form.</div>
+        <form class="session_saved">
+            <h1 id="callToAction">Enter master password</h1>
+            <div class="displayed">
+                <input name="password" class="password login_password" type="password" id="password">
+                <button  tabindex="-1" type="button" class="reveal"><i class="fa-solid fa-eye"></i></button>
+            </div>
+            <button type="submit" class="send_form  login_button">Login</button>
+            <a href="">Forgot password?</a>    
+        </form>
+    </main>
+  
+    </body>
+</html>

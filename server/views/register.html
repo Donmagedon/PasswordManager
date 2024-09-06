@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script defer src="index.js"></script>
+    <title>Register</title>
+</head>
+<body id="register">
+        <form class="register_user_container">
+            <div class="validation_msg hidden">Please review the form.</div>
+            <fieldset>
+
+                <div class="attribute_box">
+                    <label for="username">Username:</label>
+                    <input type="text" name="username" id="username">
+                </div>
+                <div class="attribute_box password_box">
+                    <label for="password">Password:</label>
+                    <div>
+                        <div class="displayed password_create">
+                            <input name="password" class="password" id="new-password" type="password">
+                            <button tabindex="-1" type="button" class="reveal"><i class="fa-solid fa-eye"></i></button>
+    
+                        </div>
+                        <span class="help_msg confirm_password">confirm new password</span>
+                        <div  class="displayed password_create">
+                            <input class="password" id="new-password-confirmation" type="password">
+                            <button tabindex="-1" type="button" class="reveal"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+            </fieldset>
+            <button  type="submit" class="send_form">Register</button>
+        </form>
+        <a href="/login.html">Have an account</a>
+</body>
+</html>
