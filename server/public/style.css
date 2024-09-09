@@ -206,8 +206,49 @@ li.consulted_passwords_card{
     width: 30rem;
     height: 30rem;
     padding: 2rem;
+    position: relative;
+}
+.card_options{
+    position: absolute;
+    top: 2%;
+    right: 0%;
+    width: 5rem;
+    margin: 1rem;
+    z-index: 2;
+}
+li.consulted_passwords_card .options_password{
+    background-color: transparent;
+    color: var(--contrast);
+    font-size: 1.2rem;
+    height: 0px;
+    width:0px;
+    margin-left: 30%;
+    margin-top: .2rem;
+    border: none;
+    cursor: pointer;
 }
 
+li.consulted_passwords_card .password_options_menu li{
+    cursor: pointer;
+    padding: .2rem;
+    transition: all 150ms ease-in;
+}
+li.consulted_passwords_card .password_options_menu li:hover, 
+li.consulted_passwords_card .password_options_menu li:focus,
+li.consulted_passwords_card .password_options_menu li:focus-visible{
+    background-color: rgba(255, 255, 255, .10);
+}
+
+li.consulted_passwords_card .card_options .password_options_menu{
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--contrast);
+    border-radius: .02rem;
+}
+li.consulted_passwords_card .card_options .password_options_menu.hidden{
+    display: none;
+}
 .key_details li{
     display: flex;
     justify-content: space-between;

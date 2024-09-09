@@ -92,6 +92,9 @@ interactiveCopy.forEach((el)=>{
 })
 
 document.addEventListener("click",(e)=>{
+         if(!e.target.parentElement)
+            return
+
          if(e.target.parentElement.matches(".reveal")){
             
             let input = e.target.parentElement.previousElementSibling
@@ -427,6 +430,76 @@ for(let i =0;i < passwordArry.length; i++){
     result.innerHTML += PASSWORD_CARD_ELEMENT
 }
 }
+function buttonDisplayOptions(btn,idleIcon,activeIcon,options){
+    btn.classList.toggle("active")
+    const btnIsActive = btn.classList.contains("active")
+    const toggleIcon = function(){
+        if(btnIsActive){
+            btn.innerHTML = activeIcon
+        }else{
+             btn.innerHTML = idleIcon
+        }
+    }
+    const toggleOptions = function(){
+        if(btnIsActive){
+            options.forEach((el)=>{
+                btn.nextElementSibling.innerHTML += el.element
+            })
+            btn.nextElementSibling.classList.remove("hidden")
+        }else{
+            btn.nextElementSibling.innerHTML = ""
+            btn.nextElementSibling.classList.add("hidden")
+        }
+
+    }
+    toggleOptions()
+    toggleIcon()
+}
+document.addEventListener("click",(e)=>{
+    let clickedBtn = e.target.matches(".options_password") ?  e.target.matches(".options_password"): e.target.parentElement.matches(".options_password")
+    let options_password = {
+        condition:e.target.matches(".options_password") ?  e.target.matches(".options_password"): e.target.parentElement.matches(".options_password")
+       ,
+       btnElement:function(e){
+        if(e.target.matches(".options_password")){
+            return e.target
+        }
+        if(e.target.parentElement.matches(".options_password")){
+            return e.target.parentElement
+        }else{
+            return null
+        }
+    }
+    ,options:
+    [
+        {
+            action:"Edit",
+            element:`<li>Edit</li>`
+        },
+        {
+            action:"More",
+            element:`<li>More</li>`
+        },        {
+            action:"Delete",
+            element:`<li style="color:var(--accent)">Delete</li>`
+        }
+    ]
+    }
+    switch (clickedBtn) {
+        case options_password.condition:
+         buttonDisplayOptions(options_password.btnElement(e),
+         `<i class="fa-solid fa-chevron-down"></i>`,
+         `<i class="fa-solid fa-chevron-up"></i>`,
+         options_password.options
+        )
+            break;
+    
+        default:
+            break;
+    }
+
+})
+
 if(register){
     validateRegisterPassword()
     validateRegisterUser()
