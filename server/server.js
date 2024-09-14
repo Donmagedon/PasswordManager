@@ -55,6 +55,7 @@ app.use("/user-passwords",userPasswords)
 app.use("/password-created",passwordCreated)
 app.use("/password-created.html",passwordCreated)
 app.use("/search-password",searchPassword)
+app.use("/delete-password",userPasswords)
 
 
 app.listen(3330,()=>{

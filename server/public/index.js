@@ -411,6 +411,11 @@ async function displaySearchedPasswords(passwordArry){
     result.innerHTML = ""
 for(let i =0;i < passwordArry.length; i++){
     const PASSWORD_CARD_ELEMENT = `<li class="consulted_passwords_card">
+    <div class="card_options">
+    <button  class="options_password"><i class="fa-solid fa-chevron-down"></i></button>
+    <ul data-id="${passwordArry[i].title}" class="hidden password_options_menu options_menu">
+    </ul>
+</div>
     <h3 class="interactive_copy">${passwordArry[i].title}</h3>
     <div class="main_details">
         <div class="displayed">
@@ -431,6 +436,9 @@ for(let i =0;i < passwordArry.length; i++){
 }
 }
 function buttonDisplayOptions(btn,idleIcon,activeIcon,options){
+    if(!btn){
+        return
+    }
     btn.classList.toggle("active")
     const btnIsActive = btn.classList.contains("active")
     const toggleIcon = function(){
@@ -455,8 +463,49 @@ function buttonDisplayOptions(btn,idleIcon,activeIcon,options){
     toggleOptions()
     toggleIcon()
 }
-document.addEventListener("click",(e)=>{
+function removeElement(el){
+    el.remove()
+}
+function confirmationModal(fn,e){
+
+    const modalElement = document.getElementById("main_confirmation")
+    const acceptBtn = document.getElementById("accept")
+    const denyBtn = document.getElementById("deny")
+    modalElement.showModal()
+    acceptBtn.addEventListener("click",()=>{
+        fn(e)
+        modalElement.close()
+    })
+    denyBtn.addEventListener("click",()=>{
+        modalElement.close()
+    })
+
+
+}
+async function deletePassword(passwordTitle){
+    const URI = "http://localhost:3330/delete-password"
+    const session = await checkSession()
+    fetch(URI,{
+        method:"DELETE",
+
+        body:JSON.stringify({
+            title:passwordTitle,
+            username: session.username
+        }),
+        headers:{
+            "Content-Type":"application/json"
+        }
+    })
+}
+async function clientRemovesPassword(e){
+    const parent = e.target.parentElement
+    const cardElement = parent.parentElement.parentElement
+    deletePassword(parent.dataset.id)
+    removeElement(cardElement)
+}
+document.addEventListener("click", async (e)=>{
     let clickedBtn = e.target.matches(".options_password") ?  e.target.matches(".options_password"): e.target.parentElement.matches(".options_password")
+    let btnDeletePassword = e.target.matches(".btn_delete_password")
     let options_password = {
         condition:e.target.matches(".options_password") ?  e.target.matches(".options_password"): e.target.parentElement.matches(".options_password")
        ,
@@ -474,18 +523,18 @@ document.addEventListener("click",(e)=>{
     [
         {
             action:"Edit",
-            element:`<li>Edit</li>`
+            element:`<li class="btn_edit_password">Edit</li>`
         },
         {
             action:"More",
             element:`<li>More</li>`
         },        {
             action:"Delete",
-            element:`<li style="color:var(--accent)">Delete</li>`
+            element:`<li style="color:var(--accent)"  class="btn_delete_password">Delete</li>`
         }
     ]
     }
-    switch (clickedBtn) {
+    switch (true) {
         case options_password.condition:
          buttonDisplayOptions(options_password.btnElement(e),
          `<i class="fa-solid fa-chevron-down"></i>`,
@@ -493,7 +542,8 @@ document.addEventListener("click",(e)=>{
          options_password.options
         )
             break;
-    
+        case btnDeletePassword:
+            confirmationModal(clientRemovesPassword,e)
         default:
             break;
     }

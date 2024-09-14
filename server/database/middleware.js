@@ -196,14 +196,23 @@ async function decryptPassword(input){
 }
 async function deletePassword(req,res,next) {
     const object = req.body.title
+    const username = req.body.username
     try {
-        const storedPassword = await passwordObject.findOne({title:object})
+        const storedPassword = await passwordObject.find(
+            {
+            "medatada.owner":username
+        })
         if(storedPassword){
-            await passwordObject.deleteOne({title:object})
+            await passwordObject.deleteOne(
+                {title:object,
+                "medatada.owner":username
+                })
+
             res.sendStatus(200)
         }else{
             res.sendStatus(400)
         }
+
     } catch (error) {
         console.error(error)
     }

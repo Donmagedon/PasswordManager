@@ -367,3 +367,25 @@ form {
 .link_button.secundary{
     border: 1px solid var(--contrast);
 }
+.confirmation{
+    background-color: var(--main_clr);
+    border: 1px solid var(--contrast);
+    color: var(--contrast);
+
+    
+}
+.confirmation_options_box{
+    display: flex;
+    padding: 1rem;
+}
+.confirmation_options_box button{
+    margin: 1rem auto;
+    padding: .6rem 1rem;
+    background-color: transparent;
+    border: 1px solid var(--contrast);
+    cursor: pointer;
+    color: var(--contrast);
+}
+.confirmation_options_box button.negative_btn{
+    background-color: var(--accent);
+}
