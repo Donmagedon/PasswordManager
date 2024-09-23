@@ -423,14 +423,17 @@ async function validateCreatePassword() {
 }
 async function searchPasswords(userInput, session) {
   try {
-    const sanitizeUserInput = function(input){
-      let result = input.toLowerCase()
-      return result
-    }
+    const sanitizeUserInput = function (input) {
+      let result = input.toLowerCase();
+      return result;
+    };
     const URI = "/search-password";
     const request = await fetch(URI, {
       method: "POST",
-      body: JSON.stringify({ search: sanitizeUserInput(userInput), username: session }),
+      body: JSON.stringify({
+        search: sanitizeUserInput(userInput),
+        username: session,
+      }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -583,11 +586,14 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-document.addEventListener("click",(e)=>{
-  if(e.target.matches(".nav_responsive_button")|| e.target.matches(".nav_responsive_button span")){
-    document.querySelector(".nav_responsive").classList.toggle("hidden")
+document.addEventListener("click", (e) => {
+  if (
+    e.target.matches(".nav_responsive_button") ||
+    e.target.matches(".nav_responsive_button span")
+  ) {
+    document.querySelector(".nav_responsive").classList.toggle("hidden");
   }
-})
+});
 if (register) {
   validateRegisterPassword();
   validateRegisterUser();
@@ -613,11 +619,11 @@ if (login) {
 }
 
 if (session_saved) {
-document.addEventListener("click", (e)=>{
-  if(e.target.matches("#logout")){
-    removeCookies()
-  }
-});
+  document.addEventListener("click", (e) => {
+    if (e.target.matches("#logout")) {
+      removeCookies();
+    }
+  });
   const getUsername = async () => {
     const username = await checkSession();
     validateLogin(loginBtn, username.username);
@@ -636,7 +642,11 @@ document.addEventListener("click", (e)=>{
 }
 if (dashboard) {
   initialize();
-  logout.addEventListener("click", removeCookies);
+  document.addEventListener("click", (e) => {
+    if (e.target.matches("#logout")) {
+      removeCookies();
+    }
+  });
   searchBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     let session = await checkSession();
