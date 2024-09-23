@@ -613,7 +613,11 @@ if (login) {
 }
 
 if (session_saved) {
-  logout.addEventListener("click", removeCookies);
+document.addEventListener("click", (e)=>{
+  if(e.target.matches("#logout")){
+    removeCookies()
+  }
+});
   const getUsername = async () => {
     const username = await checkSession();
     validateLogin(loginBtn, username.username);
