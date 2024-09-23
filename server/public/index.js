@@ -44,7 +44,7 @@ async function checkSession() {
 
   const authenticate = async function (token) {
     try {
-      const uri = "http://localhost:3330/login/checkUser";
+      const uri = "/login/checkUser";
       const response = await fetch(uri, {
         method: "POST",
         headers: {
@@ -208,7 +208,7 @@ function validateLogin(element, getUsername = undefined) {
 }
 
 async function attemptLogin(username, password) {
-  const uri = "http://localhost:3330/login";
+  const uri = "/login";
   try {
     const response = fetch(uri, {
       method: "POST",
@@ -302,7 +302,7 @@ function checkLoadingState(response, el, fn, initialMsg, pendingState) {
   }
 }
 async function attemptRegisterUser(username, password) {
-  const uri = "http://localhost:3330/register/submit";
+  const uri = "/register/submit";
   await fetch(uri, {
     method: "POST",
     body: JSON.stringify({
@@ -369,7 +369,7 @@ async function attemptCreatePassword() {
         ? document.getElementById("expiry").value
         : null,
     };
-    const uri = "http://localhost:3330/user-passwords";
+    const uri = "/user-passwords";
     const response = fetch(uri, {
       method: "POST",
       headers: {
@@ -427,7 +427,7 @@ async function searchPasswords(userInput, session) {
       let result = input.toLowerCase()
       return result
     }
-    const URI = "http://localhost:3330/search-password";
+    const URI = "/search-password";
     const request = await fetch(URI, {
       method: "POST",
       body: JSON.stringify({ search: sanitizeUserInput(userInput), username: session }),
@@ -513,7 +513,7 @@ function confirmationModal(fn, e) {
   });
 }
 async function deletePassword(passwordTitle) {
-  const URI = "http://localhost:3330/delete-password";
+  const URI = "/delete-password";
   const session = await checkSession();
   fetch(URI, {
     method: "DELETE",
