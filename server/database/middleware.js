@@ -48,7 +48,7 @@ async function loginAttempt(req, res, next) {
   }
 }
 async function tokenCreation(req, res, next) {
-  const key = fs.readFileSync(path.join(__dirname, "/etc/secrets/private.key"));
+  const key = fs.readFileSync(path.join(__dirname, "private.key"));
   const tokenLate = JWT.sign({ username: req.body.username }, key, {
     algorithm: "RS256",
     expiresIn: "3d",
@@ -65,7 +65,7 @@ async function tokenCreation(req, res, next) {
 }
 
 async function sessionSaved(req, res) {
-  const key = fs.readFileSync(path.join(__dirname, "/etc/secrets/public.key"));
+  const key = fs.readFileSync(path.join(__dirname, "public.key"));
   JWT.verify(req.body.token, key, (err, payload) => {
     if (err) {
       res.sendStatus(401);
@@ -77,7 +77,7 @@ async function sessionSaved(req, res) {
 
 async function isAuthenticated(req, res, next) {
   const cookies = req.cookies;
-  const key = fs.readFileSync(path.join(__dirname, "/etc/secrets/public.key"));
+  const key = fs.readFileSync(path.join(__dirname, "public.key"));
   if (!cookies.tokenEarly && !cookies.tokenLate) {
     res.redirect("/login.html");
   } else {
@@ -106,7 +106,7 @@ async function isAuthenticated(req, res, next) {
 }
 async function sessionIsActive(req, res, next) {
   const cookies = req.cookies;
-  const key = fs.readFileSync(path.join(__dirname, "/etc/secrets/public.key"));
+  const key = fs.readFileSync(path.join(__dirname, "public.key"));
 
   if (!cookies.tokenLate && !cookies.tokenLate) {
     if (req.baseUrl === "/login.html") {
@@ -138,9 +138,7 @@ async function sessionIsActive(req, res, next) {
 }
 async function createPassword(req, res, next) {
   const encrypt = function (password) {
-    const public = fs.readFileSync(
-      path.join(__dirname, "/etc/secrets/public.key")
-    );
+    const public = fs.readFileSync(path.join(__dirname, "/public.key"));
     const encrypted = crypto.publicEncrypt(public, Buffer.from(password));
     return encrypted.toString("base64");
   };
@@ -190,9 +188,7 @@ async function createPassword(req, res, next) {
   res.end();
 }
 async function decryptPassword(input) {
-  const private = fs.readFileSync(
-    path.join(__dirname, "/etc/secrets/certificates/private.key")
-  );
+  const private = fs.readFileSync(path.join(__dirname, "private.key"));
   const decrypted = crypto.privateDecrypt(
     private,
     Buffer.from(input, "base64")
