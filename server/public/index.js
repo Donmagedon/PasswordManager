@@ -270,7 +270,11 @@ function loginToSession(
         if (loginValidationSuccesful === false) {
           cautionElement.classList.remove("hidden");
           cautionElement.innerText = errorMessages.invalidLoginDetails;
-        } else {
+        }
+        if(loginValidationSuccesful === "locked") {
+          cautionElement.classList.remove("hidden");
+          cautionElement.innerText = errorMessages.lockedAccount;
+        } if(loginValidationSuccesful.tokenEarly || loginValidationSuccesful.tokenLate){
           document.cookie = `tokenEarly=${parsedData.tokenEarly} ;max-age=${
             60 * 60 * 3
           }`;
@@ -279,6 +283,8 @@ function loginToSession(
           }`;
           localStorage.setItem("session", JSON.stringify(parsedData));
           reRouteUser("/dashboard.html");
+        }else{
+          return
         }
         loginValidationSuccesful = undefined;
       });
@@ -619,18 +625,17 @@ if (login) {
 }
 
 if (session_saved) {
+  initialize();
+  const user = async function(){
+    const response =  await checkSession()
+    validateLogin(loginBtn,response.username);
+  }
+  user()
   document.addEventListener("click", (e) => {
     if (e.target.matches("#logout")) {
       removeCookies();
     }
   });
-  const getUsername = async () => {
-    const username = await checkSession();
-    validateLogin(loginBtn, username.username);
-  };
-  getUsername();
-
-  initialize();
   submitBtn.addEventListener("click", (e) => {
     e.preventDefault();
     if (formIsValid()) {

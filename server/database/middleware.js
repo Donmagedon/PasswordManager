@@ -32,7 +32,9 @@ async function createUser(req, res) {
   res.sendStatus(200);
 }
 async function loginAttempt(req, res, next) {
-  const savedPassword = await users.findOne({ username: req.body.username });
+  const username = req.body.username;
+  const foundUser = await users.findOne({ username: username });
+  const savedPassword = await users.findOne({ username: username });
   try {
     const validation = bcrypt.compare(
       req.body.password,
@@ -41,6 +43,23 @@ async function loginAttempt(req, res, next) {
     if (await validation) {
       next();
     } else {
+      const failedCounter = foundUser.security.failedAttempts;
+      if (failedCounter >= 2) {
+        await users.updateOne(
+          { username: username },
+          {
+            $set: {
+              "security.isLocked": true,
+            },
+          }
+        );
+      }
+      await users.updateOne(
+        { username: username },
+        {
+          $inc: { "security.failedAttempts": 1 },
+        }
+      );
       res.json(await validation);
     }
   } catch {
@@ -48,7 +67,9 @@ async function loginAttempt(req, res, next) {
   }
 }
 async function tokenCreation(req, res, next) {
-  const key = fs.readFileSync(path.join(__dirname, "../private.key"));
+  const key = fs.readFileSync(
+    path.join(__dirname, process.env.PRIVATE_KEY_PATH)
+  );
   const tokenLate = JWT.sign({ username: req.body.username }, key, {
     algorithm: "RS256",
     expiresIn: "3d",
@@ -65,7 +86,9 @@ async function tokenCreation(req, res, next) {
 }
 
 async function sessionSaved(req, res) {
-  const key = fs.readFileSync(path.join(__dirname, "../public.key"));
+  const key = fs.readFileSync(
+    path.join(__dirname, process.env.PUBLIC_KEY_PATH)
+  );
   JWT.verify(req.body.token, key, (err, payload) => {
     if (err) {
       res.sendStatus(401);
@@ -75,9 +98,26 @@ async function sessionSaved(req, res) {
   });
 }
 
+async function isLocked(req, res, next) {
+  const queriedUser = req.body.username;
+  const savedUser = await users.findOne({
+    username: queriedUser,
+  });
+  if (savedUser) {
+    if (savedUser.security.isLocked) {
+      res.json("locked");
+    } else {
+      next();
+    }
+  } else {
+    return;
+  }
+}
 async function isAuthenticated(req, res, next) {
   const cookies = req.cookies;
-  const key = fs.readFileSync(path.join(__dirname, "../public.key"));
+  const key = fs.readFileSync(
+    path.join(__dirname, process.env.PUBLIC_KEY_PATH)
+  );
   if (!cookies.tokenEarly && !cookies.tokenLate) {
     res.redirect("/login.html");
   } else {
@@ -106,7 +146,9 @@ async function isAuthenticated(req, res, next) {
 }
 async function sessionIsActive(req, res, next) {
   const cookies = req.cookies;
-  const key = fs.readFileSync(path.join(__dirname, "../public.key"));
+  const key = fs.readFileSync(
+    path.join(__dirname, process.env.PUBLIC_KEY_PATH)
+  );
 
   if (!cookies.tokenLate && !cookies.tokenLate) {
     if (req.baseUrl === "/login.html") {
@@ -138,7 +180,9 @@ async function sessionIsActive(req, res, next) {
 }
 async function createPassword(req, res, next) {
   const encrypt = function (password) {
-    const public = fs.readFileSync(path.join(__dirname, "../public.key"));
+    const public = fs.readFileSync(
+      path.join(__dirname, process.env.PUBLIC_KEY_PATH)
+    );
     const encrypted = crypto.publicEncrypt(public, Buffer.from(password));
     return encrypted.toString("base64");
   };
@@ -188,7 +232,9 @@ async function createPassword(req, res, next) {
   res.end();
 }
 async function decryptPassword(input) {
-  const private = fs.readFileSync(path.join(__dirname, "../private.key"));
+  const private = fs.readFileSync(
+    path.join(__dirname, process.env.PRIVATE_KEY_PATH)
+  );
   const decrypted = crypto.privateDecrypt(
     private,
     Buffer.from(input, "base64")
@@ -251,6 +297,7 @@ const middlewares = {
   createPassword,
   deletePassword,
   searchPasswords,
+  isLocked,
 };
 
 module.exports = middlewares;
