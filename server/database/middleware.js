@@ -7,6 +7,26 @@ const JWT = require("jsonwebtoken");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const dates24HoursAppart = function (oldest, earliest) {
+  //string of date in this format (YYYY/M/DD/TIME)
+  const firstDayHour = oldest.split("/")[3].split(":").join("");
+  const secondDayHour = earliest.split("/")[3].split(":").join("");
+  const isNextDay =
+    parseInt(oldest.split("/")[2]) < parseInt(earliest.split("/")[2])
+      ? true
+      : false;
+  const difference = Math.floor(firstDayHour - secondDayHour);
+  if (isNextDay) {
+    if (difference >= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+};
+
 function formattedTime() {
   let dateInstance = new Date();
   let current = `${dateInstance.getFullYear()}/${
@@ -28,6 +48,13 @@ async function createUser(req, res) {
     username: req.body.username,
     password: await hashedPassword,
     timestamp: timestamp(),
+    security: {
+      isLocked: false,
+      failedAttempts: 0,
+      lastLoginAttempt: timestamp(),
+      laslastSuccessfullLogin: timestamp(),
+      lastFailedLoginAttempt: "not yet",
+    },
   });
   res.sendStatus(200);
 }
@@ -35,15 +62,53 @@ async function loginAttempt(req, res, next) {
   const username = req.body.username;
   const foundUser = await users.findOne({ username: username });
   const savedPassword = await users.findOne({ username: username });
+
   try {
     const validation = bcrypt.compare(
       req.body.password,
       savedPassword.password
     );
+    if (foundUser) {
+      //a user can fail the password 2 times per day
+      if(dates24HoursAppart(foundUser.security.lastFailedLoginAttempt,formattedTime())){
+        await users.updateOne(
+          { username: username },
+          {
+            $set: {
+              "security.failedAttempts": 0,
+            },
+          }
+        );
+      }
+      await users.updateOne(
+        { username: username },
+        {
+          $set: {
+            "security.lastLoginAttempt": formattedTime(),
+          },
+        }
+      );
+    }
     if (await validation) {
+      await users.updateOne(
+        { username: username },
+        {
+          $set: {
+            "security.lastSuccessfullLogin": formattedTime(),
+          },
+        }
+      );
       next();
     } else {
       const failedCounter = foundUser.security.failedAttempts;
+      await users.updateOne(
+        { username: username },
+        {
+          $set: {
+            "security.lastFailedLoginAttempt": formattedTime(),
+          },
+        }
+      );
       if (failedCounter >= 2) {
         await users.updateOne(
           { username: username },

@@ -8,8 +8,19 @@ const userSecurity = new mongoose.Schema({
     failedAttempts:{
         required:true,
         type:Number
+    },
+    lastLoginAttempt:{
+        required:true,
+        type:String,
+    },
+    lastSuccessfullLogin:{
+        required:true,
+        type:String,
+    },
+    lastFailedLoginAttempt:{
+        required:true,
+        type:String,
     }
-  
 })
 
 const user =  new mongoose.Schema({
