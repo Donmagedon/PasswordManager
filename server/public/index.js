@@ -15,6 +15,7 @@ const dashboard = document.getElementById("dashboard");
 const cautionElement = document.querySelector(".validation_msg");
 const result = document.getElementById("result");
 const searchBtn = document.getElementById("search");
+const preventsReload = ["click","mousemove","keydown","scroll"]
 const errorMessages = {
   invalidLoginDetails: "Password or username is wrong",
   lockedAccount: "Account is locked, please contact administrator",
@@ -276,7 +277,7 @@ function loginToSession(
           cautionElement.innerText = errorMessages.lockedAccount;
         } if(loginValidationSuccesful.tokenEarly || loginValidationSuccesful.tokenLate){
           document.cookie = `tokenEarly=${parsedData.tokenEarly} ;max-age=${
-            60 * 60 * 3
+            60 * 60 * 1
           }`;
           document.cookie = `tokenLate=${parsedData.tokenLate} ;max-age=${
             60 * 60 * 72
@@ -686,3 +687,16 @@ function removeCookies() {
   document.cookie = "tokenLate=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=";
   document.cookie = "tokenEarly=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=";
 }
+
+let timer;
+
+function reloadPageInactivity(){
+  clearTimeout(timer)
+  timer = setTimeout(()=>{
+    location.reload()
+  },Math.floor(1000 * 60 * 60))
+}
+preventsReload.forEach((event)=>{
+  window.addEventListener(event,reloadPageInactivity)
+})
+reloadPageInactivity()
