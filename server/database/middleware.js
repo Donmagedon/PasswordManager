@@ -70,7 +70,12 @@ async function loginAttempt(req, res, next) {
     );
     if (foundUser) {
       //a user can fail the password 2 times per day
-      if(dates24HoursAppart(foundUser.security.lastFailedLoginAttempt,formattedTime())){
+      if (
+        dates24HoursAppart(
+          foundUser.security.lastFailedLoginAttempt,
+          formattedTime()
+        )
+      ) {
         await users.updateOne(
           { username: username },
           {
@@ -327,6 +332,34 @@ async function deletePassword(req, res, next) {
     console.error(error);
   }
 }
+async function edit(req, res, next) {
+  const username = req.body.username;
+  const title = req.body.title;
+  const savedUser = await users.findOne({
+    username: username,
+  });
+  const toEdit = req.body.items;
+  try {
+    if (!username || !savedUser) {
+      res.sendStatus(404);
+    } else {
+      toEdit.forEach(async (obj) => {
+        await passwordObject.updateOne(
+          {
+            title: title,
+            "medatada.owner": username,
+          },
+          obj
+        );
+      });
+      res.sendStatus(200)
+      next();
+    }
+  } catch (error) {
+    res.sendStatus(500);
+    console.error(error);
+  }
+}
 async function searchPasswords(req, res, next) {
   const query = req.body.search;
   const user = req.body.username;
@@ -363,6 +396,7 @@ const middlewares = {
   deletePassword,
   searchPasswords,
   isLocked,
+  edit
 };
 
 module.exports = middlewares;

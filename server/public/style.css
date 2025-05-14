@@ -19,6 +19,12 @@ body {
   font-optical-sizing: auto;
   font-style: normal;
 }
+input{
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 1px solid white;
+  color: white;
+}
 a {
   text-decoration: none;
   color: var(--contrast);
@@ -378,6 +384,9 @@ form {
 }
 .confirmation_options_box {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  gap:2rem;
   padding: 1rem;
 }
 .confirmation_options_box button {

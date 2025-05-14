@@ -15,7 +15,10 @@ const dashboard = document.getElementById("dashboard");
 const cautionElement = document.querySelector(".validation_msg");
 const result = document.getElementById("result");
 const searchBtn = document.getElementById("search");
-const preventsReload = ["click","mousemove","keydown","scroll"]
+const preventsReload = ["click", "mousemove", "keydown", "scroll"];
+let currentCardToUndo = [];
+let currentOriginalValues = [];
+let currentFoundItems = [];
 const errorMessages = {
   invalidLoginDetails: "Password or username is wrong",
   lockedAccount: "Account is locked, please contact administrator",
@@ -272,10 +275,14 @@ function loginToSession(
           cautionElement.classList.remove("hidden");
           cautionElement.innerText = errorMessages.invalidLoginDetails;
         }
-        if(loginValidationSuccesful === "locked") {
+        if (loginValidationSuccesful === "locked") {
           cautionElement.classList.remove("hidden");
           cautionElement.innerText = errorMessages.lockedAccount;
-        } if(loginValidationSuccesful.tokenEarly || loginValidationSuccesful.tokenLate){
+        }
+        if (
+          loginValidationSuccesful.tokenEarly ||
+          loginValidationSuccesful.tokenLate
+        ) {
           document.cookie = `tokenEarly=${parsedData.tokenEarly} ;max-age=${
             60 * 60 * 1
           }`;
@@ -284,8 +291,8 @@ function loginToSession(
           }`;
           localStorage.setItem("session", JSON.stringify(parsedData));
           reRouteUser("/dashboard.html");
-        }else{
-          return
+        } else {
+          return;
         }
         loginValidationSuccesful = undefined;
       });
@@ -450,11 +457,12 @@ async function searchPasswords(userInput, session) {
     throw new Error(error);
   }
 }
+
 async function displaySearchedPasswords(passwordArry) {
   result.innerHTML = "";
 
   for (let i = 0; i < passwordArry.length; i++) {
-    const PASSWORD_CARD_ELEMENT = `<li class="consulted_passwords_card">
+    const PASSWORD_CARD_ELEMENT = `<li data-id="${passwordArry[i].title}" data-password="${passwordArry[i].password}" class="consulted_passwords_card">
     <div class="card_options">
     <button  class="options_password"><i class="fa-solid fa-chevron-down"></i></button>
     <ul data-id="${passwordArry[i].title}" class="hidden password_options_menu options_menu">
@@ -462,19 +470,19 @@ async function displaySearchedPasswords(passwordArry) {
 </div>
     <h3 data-copies="${passwordArry[i].password}" class="interactive_copy">${passwordArry[i].title}</h3>
     <div class="main_details">
-        <div class="displayed">
+        <div data-type="password" class="displayed ">
         <input class="password" readonly value="${passwordArry[i].password}" type="password"">
         <button class="reveal"><i class="fa-solid fa-eye"></i></button></div>
         <ul class="key_details">
-            <li><b data-copies="${passwordArry[i].source}" class="interactive_copy">Source:</b>${passwordArry[i].source}</li>
-            <li><b data-copies="${passwordArry[i].userId}" class="interactive_copy">User ID:</b>${passwordArry[i].userId}</li>
-            <li><b data-copies="${passwordArry[i].category}" class="interactive_copy">Category:</b> ${passwordArry[i].category}</li>
+            <li data-header="Source" data-type="source"  class="changable"><b data-copies="${passwordArry[i].source}"class="interactive_copy">Source:</b>${passwordArry[i].source}</li>
+            <li data-header="User ID" data-type="userId" class="changable" ><b data-copies="${passwordArry[i].userId}"class="interactive_copy">User ID:</b>${passwordArry[i].userId}</li>
+            <li data-header="Category" data-type="category" class="changable"><b data-copies="${passwordArry[i].category}"class="interactive_copy">Category:</b> ${passwordArry[i].category}</li>
         </ul>
         <ul class="extra_details">
-            <li><b>Description:</b>
-            <p> ${passwordArry[i].description} </p></li>
+            <li data-type="description" data-header="Description" class="changable"><b data-copies="${passwordArry[i].description}">Description:</b><p> ${passwordArry[i].description} </p></li>
         </ul>
 </div>
+
 </li>`;
     result.innerHTML += PASSWORD_CARD_ELEMENT;
   }
@@ -537,17 +545,159 @@ async function deletePassword(passwordTitle) {
     },
   });
 }
-async function clientRemovesPassword(e) {
-  const parent = e.target.parentElement;
-  const cardElement = parent.parentElement.parentElement;
-  deletePassword(parent.dataset.id);
-  removeElement(cardElement);
+
+async function editPassword(passwordTitle, itemsTochange) {
+  const URI = "/edit";
+  const session = await checkSession();
+  fetch(URI, {
+    method: "PATCH",
+
+    body: JSON.stringify({
+      title: passwordTitle,
+      username: session.username,
+      items: itemsTochange,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 document.addEventListener("click", async (e) => {
+  const parent = e.target.parentElement;
+  const cardElement = parent.parentElement.parentElement;
+  async function clientRemovesPassword(e) {
+    deletePassword(parent.dataset.id);
+    removeElement(cardElement);
+  }
+
+  async function clientEditsPassword() {
+    const currentId = cardElement.dataset.id;
+    const currentHTML = cardElement.innerHTML;
+    e.target.classList.add("active");
+    let originalValues = [];
+    const elements = cardElement.querySelectorAll(".changable");
+    elements.forEach((el) => {
+      originalValues.push({
+        [el.dataset.type]: el.childNodes[0].dataset.copies,
+      });
+      if (el.dataset.type === "category") {
+        const original = el.childNodes[0].dataset.copies;
+        el.innerHTML = `<b>${el.dataset.header}:</b><select data-id="${el.dataset.type}" id="category" class="changing">
+                                <option value="Cryto and Wallets">Cryto and Wallets</option>
+            <option value="Google Accounts">Google Accounts</option>
+            <option value="Social Media Accounts">Social Media Accounts</option>
+            <option value="Programming Tools">Programming Tools</option>
+            <option value="One time websites">One time websites</option>
+            <option value="Bureoucracy and Paperwork websites">
+              Bureoucracy and Paperwork websites
+            </option>
+            <option value="Bank Accounts">Bank Accounts</option>
+            <option value="Work Related Tools">Work Related Tools</option>
+            <option value="Work Related Iternal Tools">
+              Work Related Iternal Tools
+            </option>
+            <option value="Owned Domains">Owned Domains</option>
+            <option value="Video Games">Video Games</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Shopping and E-commerce">
+              Shopping and E-commerce
+            </option>
+        </select>`;
+        let current = el.querySelector("#category").children;
+        for (let i = 0; i < current.length; i++) {
+          if (current[i].value === original) {
+            current[i].setAttribute("selected", "");
+          }
+        }
+      } else {
+        el.innerHTML = `<b>${el.dataset.header}:</b><input class="changing" type="text" data-id="${el.dataset.type}" value="${el.childNodes[0].dataset.copies}">`;
+      }
+    });
+    cardElement.innerHTML += `<div class="confirmation_options_box"> <button class="saveChanges">Save</button>  <button data-parentid="${cardElement.dataset.id}" class="negative_btn cancelChanges">Cancel</button> </div>
+    `;
+    currentCardToUndo.push({
+      id: currentId,
+      html: currentHTML,
+      originalValues: originalValues,
+    });
+  }
+  function undoChanges() {
+    const foundOriginalCard = currentCardToUndo.find(
+      (card) => card.id === e.target.dataset.parentid
+    );
+
+    parent.parentElement.innerHTML = foundOriginalCard.html;
+    const newCurrentCards = currentCardToUndo.filter(
+      (card) => card.id !== e.target.dataset.parentid
+    );
+    currentCardToUndo = newCurrentCards;
+  }
+  function saveChanges() {
+    const title = parent.parentElement.dataset.id;
+    const password = parent.parentElement.dataset.password;
+    const foundItems = [];
+    const elements = parent.parentElement.querySelectorAll(".changing");
+    const foundOriginalCard = currentCardToUndo.find(
+      (card) => card.id === title
+    );
+    let editedHTML = "";
+    elements.forEach((el) => {
+      foundItems.push({ [el.dataset.id]: el.value });
+    });
+    currentFoundItems.push({ id: title, items: foundItems });
+    const changes = function (compare) {
+      if (compare.length > 2) {
+        return;
+      } else {
+        let result = [];
+        let objEdited = { title: title, password: password };
+        for (let i = 0; i < compare[0].length; i++) {
+          let originalObj = Object.entries(compare[0][i])[0];
+          let newObj = Object.entries(compare[1][i])[0];
+
+          objEdited = { ...objEdited, [newObj[0]]: newObj[1] };
+          if (originalObj[1] !== newObj[1]) {
+            result.push({ [newObj[0].toLowerCase()]: newObj[1] });
+          }
+        }
+        editedHTML = `<div class="card_options">
+    <button  class="options_password"><i class="fa-solid fa-chevron-down"></i></button>
+    <ul data-id="${objEdited.title}" class="hidden password_options_menu options_menu">
+    </ul>
+</div>
+    <h3 data-copies="${objEdited.password}" class="interactive_copy">${objEdited.title}</h3>
+    <div class="main_details">
+        <div data-type="password" class="displayed ">
+        <input class="password" readonly value="${objEdited.password}" type="password"">
+        <button class="reveal"><i class="fa-solid fa-eye"></i></button></div>
+        <ul class="key_details">
+            <li data-header="Source" data-type="source" class="changable"><b data-copies="${objEdited.source}"class="interactive_copy">Source:</b>${objEdited.source}</li>
+            <li data-header="User ID" data-type="userId" class="changable" ><b data-copies="${objEdited.userId}"class="interactive_copy">User ID:</b>${objEdited.userId}</li>
+            <li data-header="Category" data-type="category" class="changable"><b data-copies="${objEdited.category}"class="interactive_copy">Category:</b> ${objEdited.category}</li>
+        </ul>
+        <ul class="extra_details">
+            <li data-header="Description" data-type="description" class="changable"><b data-copies="${objEdited.description}">Description:</b><p> ${objEdited.description} </p></li>
+        </ul>
+</div>
+
+`;
+        return result;
+      }
+    };
+    editPassword(
+      title,
+      changes([foundOriginalCard.originalValues, foundItems])
+    );
+    parent.parentElement.innerHTML = editedHTML;
+  }
+
   let clickedBtn = e.target.matches(".options_password")
     ? e.target.matches(".options_password")
     : e.target.parentElement.matches(".options_password");
   let btnDeletePassword = e.target.matches(".btn_delete_password");
+  let btnEditPassword = e.target.matches(".btn_edit_password:not(.active)");
+  let btnCancelChanges = e.target.matches(".cancelChanges");
+  let btnSaveChanges = e.target.matches(".saveChanges");
   let options_password = {
     condition: e.target.matches(".options_password")
       ? e.target.matches(".options_password")
@@ -588,6 +738,15 @@ document.addEventListener("click", async (e) => {
       break;
     case btnDeletePassword:
       confirmationModal(clientRemovesPassword, e);
+      break;
+    case btnCancelChanges:
+      undoChanges();
+      break;
+    case btnEditPassword:
+      clientEditsPassword();
+      break;
+    case btnSaveChanges:
+      saveChanges();
     default:
       break;
   }
@@ -627,11 +786,11 @@ if (login) {
 
 if (session_saved) {
   initialize();
-  const user = async function(){
-    const response =  await checkSession()
-    validateLogin(loginBtn,response.username);
-  }
-  user()
+  const user = async function () {
+    const response = await checkSession();
+    validateLogin(loginBtn, response.username);
+  };
+  user();
   document.addEventListener("click", (e) => {
     if (e.target.matches("#logout")) {
       removeCookies();
@@ -690,13 +849,13 @@ function removeCookies() {
 
 let timer;
 
-function reloadPageInactivity(){
-  clearTimeout(timer)
-  timer = setTimeout(()=>{
-    location.reload()
-  },Math.floor(1000 * 60 * 60))
+function reloadPageInactivity() {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    location.reload();
+  }, Math.floor(1000 * 60 * 60));
 }
-preventsReload.forEach((event)=>{
-  window.addEventListener(event,reloadPageInactivity)
-})
-reloadPageInactivity()
+preventsReload.forEach((event) => {
+  window.addEventListener(event, reloadPageInactivity);
+});
+reloadPageInactivity();

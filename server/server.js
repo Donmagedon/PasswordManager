@@ -55,7 +55,8 @@ app.use("/password-created", passwordCreated);
 app.use("/password-created.html", passwordCreated);
 app.use("/search-password", searchPassword);
 app.use("/delete-password", userPasswords);
+app.use("/edit", userPasswords);
 
 app.listen(3330, "0.0.0.0", () => {
-  console.log("server is now listening!");
+  console.log("server is now listening on port 3330!");
 });
