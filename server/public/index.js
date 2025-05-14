@@ -613,7 +613,7 @@ document.addEventListener("click", async (e) => {
         el.innerHTML = `<b>${el.dataset.header}:</b><input class="changing" type="text" data-id="${el.dataset.type}" value="${el.childNodes[0].dataset.copies}">`;
       }
     });
-    cardElement.innerHTML += `<div class="confirmation_options_box"> <button class="saveChanges">Save</button>  <button data-parentid="${cardElement.dataset.id}" class="negative_btn cancelChanges">Cancel</button> </div>
+    cardElement.innerHTML += `<div class="confirmation_options_box"> <button data-parentid="${cardElement.dataset.id}" class="saveChanges">Save</button>  <button data-parentid="${cardElement.dataset.id}" class="negative_btn cancelChanges">Cancel</button> </div>
     `;
     currentCardToUndo.push({
       id: currentId,
@@ -631,6 +631,7 @@ document.addEventListener("click", async (e) => {
       (card) => card.id !== e.target.dataset.parentid
     );
     currentCardToUndo = newCurrentCards;
+    console.log(currentCardToUndo);
   }
   function saveChanges() {
     const title = parent.parentElement.dataset.id;
@@ -657,7 +658,7 @@ document.addEventListener("click", async (e) => {
 
           objEdited = { ...objEdited, [newObj[0]]: newObj[1] };
           if (originalObj[1] !== newObj[1]) {
-            result.push({ [newObj[0].toLowerCase()]: newObj[1] });
+            result.push({ [newObj[0]]: newObj[1] });
           }
         }
         editedHTML = `<div class="card_options">
@@ -684,11 +685,21 @@ document.addEventListener("click", async (e) => {
         return result;
       }
     };
-    editPassword(
-      title,
-      changes([foundOriginalCard.originalValues, foundItems])
-    );
-    parent.parentElement.innerHTML = editedHTML;
+
+    if (changes([foundOriginalCard.originalValues, foundItems]).length < 1) {
+      parent.parentElement.innerHTML = editedHTML;
+    } else {
+      editPassword(
+        title,
+        changes([foundOriginalCard.originalValues, foundItems])
+      );
+      parent.parentElement.innerHTML = editedHTML;
+      const newCurrentCards = currentCardToUndo.filter(
+        (card) => card.id !== e.target.dataset.parentid
+      );
+      currentCardToUndo = newCurrentCards;
+      console.log(currentCardToUndo);
+    }
   }
 
   let clickedBtn = e.target.matches(".options_password")
