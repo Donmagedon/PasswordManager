@@ -13,4 +13,5 @@ route.patch(
 //   middlewares.sessionIsActive,
   middlewares.edit
 );
+
 module.exports = route;

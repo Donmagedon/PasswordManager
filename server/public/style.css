@@ -462,3 +462,7 @@ display: none;
     width: 90%;
   }
 }
+
+.options_password_box{
+  text-align: center;
+}

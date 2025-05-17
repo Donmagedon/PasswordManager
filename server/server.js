@@ -12,6 +12,7 @@ const cookieParser = require("cookie-parser");
 const { sessionSaved } = require("./database/middleware");
 const middlewares = require("./database/middleware");
 const userPasswords = require("./database/user-passwords");
+const changePassword = require("./database/change-password")
 const options = {
   dotfiles: "ignore",
   etag: false,
@@ -56,7 +57,7 @@ app.use("/password-created.html", passwordCreated);
 app.use("/search-password", searchPassword);
 app.use("/delete-password", userPasswords);
 app.use("/edit", userPasswords);
-
+app.use("/change-password",changePassword)
 app.listen(3330, "0.0.0.0", () => {
   console.log("server is now listening on port 3330!");
 });

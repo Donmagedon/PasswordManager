@@ -7,6 +7,13 @@ const JWT = require("jsonwebtoken");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const encrypt = function (password) {
+    const public = fs.readFileSync(
+      path.join(__dirname, process.env.PUBLIC_KEY_PATH)
+    );
+    const encrypted = crypto.publicEncrypt(public, Buffer.from(password));
+    return encrypted.toString("base64");
+  };
 const dates24HoursAppart = function (oldest, earliest) {
   //string of date in this format (YYYY/M/DD/TIME)
   const firstDayHour = oldest.split("/")[3].split(":").join("");
@@ -249,13 +256,7 @@ async function sessionIsActive(req, res, next) {
   }
 }
 async function createPassword(req, res, next) {
-  const encrypt = function (password) {
-    const public = fs.readFileSync(
-      path.join(__dirname, process.env.PUBLIC_KEY_PATH)
-    );
-    const encrypted = crypto.publicEncrypt(public, Buffer.from(password));
-    return encrypted.toString("base64");
-  };
+
   const metadata = {
     owner: req.body.username,
     creationDate: new Date(),
@@ -339,19 +340,19 @@ async function edit(req, res, next) {
     username: username,
   });
   const toEdit = req.body.items;
+  let query = {}
   try {
     if (!username || !savedUser) {
       res.sendStatus(404);
     } else {
-      toEdit.forEach(async (obj) => {
+      toEdit.forEach( obj => query = {...query,...obj})
         await passwordObject.updateOne(
           {
             title: title,
             "medatada.owner": username,
           },
-          obj
-        );
-      });
+          query
+);
       res.sendStatus(200)
       next();
     }
@@ -359,6 +360,34 @@ async function edit(req, res, next) {
     res.sendStatus(500);
     console.error(error);
   }
+}
+async function changePassword(req,res,next){
+    const username = req.body.username;
+    const title = req.body.title;
+    const newPassword = req.body.password;
+    const savedUser = await users.findOne({
+    username: username,
+  });
+    try {
+    if (!username || !savedUser) {
+      res.sendStatus(404);
+    } else {
+
+        await passwordObject.updateOne(
+          {
+            title: title,
+            "medatada.owner": username,
+          },
+          {password:encrypt(newPassword)}
+        );
+      };
+      res.sendStatus(200)
+      next();
+    } catch (error) {
+    res.sendStatus(500);
+    console.error(error);
+  }
+
 }
 async function searchPasswords(req, res, next) {
   const query = req.body.search;
@@ -396,7 +425,8 @@ const middlewares = {
   deletePassword,
   searchPasswords,
   isLocked,
-  edit
+  edit,
+  changePassword,
 };
 
 module.exports = middlewares;

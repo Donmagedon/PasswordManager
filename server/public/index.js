@@ -562,8 +562,25 @@ async function editPassword(passwordTitle, itemsTochange) {
     },
   });
 }
+async function changePassword(passwordTitle, newPassword) {
+  const URI = "/change-password";
+  const session = await checkSession();
+  fetch(URI, {
+    method: "PATCH",
+
+    body: JSON.stringify({
+      title: passwordTitle,
+      username: session.username,
+      password: newPassword,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
 document.addEventListener("click", async (e) => {
   const parent = e.target.parentElement;
+
   const cardElement = parent.parentElement.parentElement;
   async function clientRemovesPassword(e) {
     deletePassword(parent.dataset.id);
@@ -574,6 +591,8 @@ document.addEventListener("click", async (e) => {
     const currentId = cardElement.dataset.id;
     const currentHTML = cardElement.innerHTML;
     e.target.classList.add("active");
+    e.target.previousElementSibling.classList.add("active");
+
     let originalValues = [];
     const elements = cardElement.querySelectorAll(".changable");
     elements.forEach((el) => {
@@ -613,8 +632,7 @@ document.addEventListener("click", async (e) => {
         el.innerHTML = `<b>${el.dataset.header}:</b><input class="changing" type="text" data-id="${el.dataset.type}" value="${el.childNodes[0].dataset.copies}">`;
       }
     });
-    cardElement.innerHTML += `<div class="confirmation_options_box"> <button data-parentid="${cardElement.dataset.id}" class="saveChanges">Save</button>  <button data-parentid="${cardElement.dataset.id}" class="negative_btn cancelChanges">Cancel</button> </div>
-    `;
+    cardElement.innerHTML += `<div class="confirmation_options_box"> <button data-parentid="${cardElement.dataset.id}" class="saveChanges">Save</button>  <button data-parentid="${cardElement.dataset.id}" class="negative_btn cancelChanges">Cancel</button> </div>`;
     currentCardToUndo.push({
       id: currentId,
       html: currentHTML,
@@ -631,7 +649,6 @@ document.addEventListener("click", async (e) => {
       (card) => card.id !== e.target.dataset.parentid
     );
     currentCardToUndo = newCurrentCards;
-    console.log(currentCardToUndo);
   }
   function saveChanges() {
     const title = parent.parentElement.dataset.id;
@@ -685,7 +702,6 @@ document.addEventListener("click", async (e) => {
         return result;
       }
     };
-
     if (changes([foundOriginalCard.originalValues, foundItems]).length < 1) {
       parent.parentElement.innerHTML = editedHTML;
     } else {
@@ -698,10 +714,40 @@ document.addEventListener("click", async (e) => {
         (card) => card.id !== e.target.dataset.parentid
       );
       currentCardToUndo = newCurrentCards;
-      console.log(currentCardToUndo);
     }
   }
+  function savePassword() {
+    e.target.classList.add("active");
+    const title = parent.parentElement.dataset.id;
+    const input = cardElement.querySelector(".password");
+    const newValue = cardElement.querySelector(".password").value;
+    const controlButtons = e.target.parentElement.parentElement.querySelector(
+      ".confirmation_options_box"
+    );
+    const editMode =
+      e.target.parentElement.parentElement.querySelector(".change_password");
+    const lockedButton =
+      e.target.parentElement.parentElement.querySelector(".btn_edit_password");
+    changePassword(title,newValue)
+    editMode.classList.remove("active");
+    lockedButton.classList.remove("active");
+    input.setAttribute("readonly", "");
 
+    controlButtons.remove();
+  }
+  function clientChangesPassword() {
+    const currentId = cardElement.dataset.id;
+    const currentHTML = cardElement.innerHTML;
+    const currentInput = cardElement.querySelector(".password");
+    currentInput.removeAttribute("readonly");
+    e.target.classList.add("active");
+    e.target.nextElementSibling.classList.add("active");
+    cardElement.innerHTML += `<div class="confirmation_options_box"> <button data-parentid="${cardElement.dataset.id}" class="save_password">Save</button>  <button data-parentid="${cardElement.dataset.id}" class="negative_btn cancelChanges">Cancel</button> </div>`;
+    currentCardToUndo.push({
+      id: currentId,
+      html: currentHTML,
+    });
+  }
   let clickedBtn = e.target.matches(".options_password")
     ? e.target.matches(".options_password")
     : e.target.parentElement.matches(".options_password");
@@ -709,6 +755,8 @@ document.addEventListener("click", async (e) => {
   let btnEditPassword = e.target.matches(".btn_edit_password:not(.active)");
   let btnCancelChanges = e.target.matches(".cancelChanges");
   let btnSaveChanges = e.target.matches(".saveChanges");
+  let btnChangePassword = e.target.matches(".change_password:not(.active)");
+  let btnSavePassword = e.target.matches(".save_password:not(.active)");
   let options_password = {
     condition: e.target.matches(".options_password")
       ? e.target.matches(".options_password")
@@ -725,16 +773,20 @@ document.addEventListener("click", async (e) => {
     },
     options: [
       {
+        action: "Delete Password",
+        element: `<li class="change_password options_password_box">Change Password</li>`,
+      },
+      {
         action: "Edit",
-        element: `<li class="btn_edit_password">Edit</li>`,
+        element: `<li class="btn_edit_password options_password_box">Edit</li>`,
       },
       {
         action: "More",
-        element: `<li>More</li>`,
+        element: `<li class="options_password_box">More</li>`,
       },
       {
         action: "Delete",
-        element: `<li style="color:var(--accent)"  class="btn_delete_password">Delete</li>`,
+        element: `<li style="color:var(--accent)"  class="btn_delete_password options_password_box">Delete</li>`,
       },
     ],
   };
@@ -758,6 +810,13 @@ document.addEventListener("click", async (e) => {
       break;
     case btnSaveChanges:
       saveChanges();
+      break;
+    case btnChangePassword:
+      clientChangesPassword();
+      break;
+    case btnSavePassword:
+      savePassword();
+      break;
     default:
       break;
   }
