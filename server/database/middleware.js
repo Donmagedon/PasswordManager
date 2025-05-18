@@ -8,12 +8,12 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const encrypt = function (password) {
-    const public = fs.readFileSync(
-      path.join(__dirname, process.env.PUBLIC_KEY_PATH)
-    );
-    const encrypted = crypto.publicEncrypt(public, Buffer.from(password));
-    return encrypted.toString("base64");
-  };
+  const public = fs.readFileSync(
+    path.join(__dirname, process.env.PUBLIC_KEY_PATH)
+  );
+  const encrypted = crypto.publicEncrypt(public, Buffer.from(password));
+  return encrypted.toString("base64");
+};
 const dates24HoursAppart = function (oldest, earliest) {
   //string of date in this format (YYYY/M/DD/TIME)
   const firstDayHour = oldest.split("/")[3].split(":").join("");
@@ -76,23 +76,8 @@ async function loginAttempt(req, res, next) {
       savedPassword.password
     );
     if (foundUser) {
-      //a user can fail the password 2 times per day
-      if (
-        dates24HoursAppart(
-          foundUser.security.lastFailedLoginAttempt,
-          formattedTime()
-        )
-      ) {
-        await users.updateOne(
-          { username: username },
-          {
-            $set: {
-              "security.failedAttempts": 0,
-            },
-          }
-        );
-      }
-      await users.updateOne(
+    const login = async function(){
+            await users.updateOne(
         { username: username },
         {
           $set: {
@@ -139,7 +124,26 @@ async function loginAttempt(req, res, next) {
       );
       res.json(await validation);
     }
-  } catch {
+      //a user can fail the password 2 times per day
+      if (        dates24HoursAppart(
+          foundUser.security.lastFailedLoginAttempt,
+          formattedTime()
+        )) {
+        await users.updateOne(
+          { username: username },
+          {
+            $set: {
+              "security.failedAttempts": 0,
+            },
+          }
+        );
+        login()
+      }else{
+        login()
+      }
+
+    }
+} catch {
     await res.json(false);
   }
 }
@@ -256,7 +260,6 @@ async function sessionIsActive(req, res, next) {
   }
 }
 async function createPassword(req, res, next) {
-
   const metadata = {
     owner: req.body.username,
     creationDate: new Date(),
@@ -340,20 +343,20 @@ async function edit(req, res, next) {
     username: username,
   });
   const toEdit = req.body.items;
-  let query = {}
+  let query = {};
   try {
     if (!username || !savedUser) {
       res.sendStatus(404);
     } else {
-      toEdit.forEach( obj => query = {...query,...obj})
-        await passwordObject.updateOne(
-          {
-            title: title,
-            "medatada.owner": username,
-          },
-          query
-);
-      res.sendStatus(200)
+      toEdit.forEach((obj) => (query = { ...query, ...obj }));
+      await passwordObject.updateOne(
+        {
+          title: title,
+          "medatada.owner": username,
+        },
+        query
+      );
+      res.sendStatus(200);
       next();
     }
   } catch (error) {
@@ -361,33 +364,31 @@ async function edit(req, res, next) {
     console.error(error);
   }
 }
-async function changePassword(req,res,next){
-    const username = req.body.username;
-    const title = req.body.title;
-    const newPassword = req.body.password;
-    const savedUser = await users.findOne({
+async function changePassword(req, res, next) {
+  const username = req.body.username;
+  const title = req.body.title;
+  const newPassword = req.body.password;
+  const savedUser = await users.findOne({
     username: username,
   });
-    try {
+  try {
     if (!username || !savedUser) {
       res.sendStatus(404);
     } else {
-
-        await passwordObject.updateOne(
-          {
-            title: title,
-            "medatada.owner": username,
-          },
-          {password:encrypt(newPassword)}
-        );
-      };
-      res.sendStatus(200)
-      next();
-    } catch (error) {
+      await passwordObject.updateOne(
+        {
+          title: title,
+          "medatada.owner": username,
+        },
+        { password: encrypt(newPassword) }
+      );
+    }
+    res.sendStatus(200);
+    next();
+  } catch (error) {
     res.sendStatus(500);
     console.error(error);
   }
-
 }
 async function searchPasswords(req, res, next) {
   const query = req.body.search;
